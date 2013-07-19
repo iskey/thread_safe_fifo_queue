@@ -13,33 +13,24 @@ int main()
     char *tmp3="33333333333333";
     char *tmp4="44444444444444";
     char *tmp5="55555555555555";
-//    queue_push_head(queue,tmp1);
-//    queue_push_head(queue,tmp2);
-//    queue_push_head(queue,tmp3);
-//    queue_push_head(queue,tmp4);
-//    queue_push_head(queue,tmp5);
 
-    {
-        char *ttt;
-        slice_malloc(ttt, 100);
-        strcpy(ttt, tmp1);
-        queue_push_head(queue, ttt);
-    }
-
-    {
-        char *ttt;
-        slice_malloc(ttt, 100);
-        strcpy(ttt, tmp2);
-        queue_push_head(queue, ttt);
-    }
-
+    queue_push_head(queue, strlen(tmp1), tmp1);
+    queue_push_head(queue, strlen(tmp2), tmp2);
+    queue_push_head(queue, strlen(tmp3), tmp3);
+    queue_push_head(queue, strlen(tmp4), tmp4);
+    queue_push_head(queue, strlen(tmp5), tmp5);
+    queue_push_head(queue, strlen(tmp2), tmp2);
+    queue_push_head(queue, strlen(tmp2), tmp2);
+    queue_push_head(queue, strlen(tmp3), tmp3);
+    queue_push_head(queue, strlen(tmp4), tmp4);
+    queue_push_head(queue, strlen(tmp5), tmp5);
 
     int i;
     for(i= 0; i<10; i++){
         char *data;
-        data= queue_pop_tail(queue);
-        printf("data is %s\n",(char*)data);
-//        printf("data addr is 0x%0x\n",data);
+        unsigned int len;
+        data= queue_pop_tail(queue, &len);
+        printf("date length is %d, data is %s\n",len, (char*)data);
         slice_free(data);
     }
 

@@ -62,14 +62,39 @@ void* slice_alloc0(unsigned int mem_size)
     }
     return mem;
 }
-void
-list_free(QList *list)
+/**
+ * @brief free one list structure
+ * @param [in] QList *list
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+void list_free(QList *list)
 {
-//    slice_free(list->data);
     slice_free(list);
 }
-QList*
-list_last(QList *list)
+/**
+ * @brief search to last list
+ * @param [in] QList *list
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+QList* list_last(QList *list)
 {
     if(list)
     {
@@ -78,14 +103,30 @@ list_last(QList *list)
     }
     return list;
 }
-
-QList*
-list_prepend(QList *list, void *data)
+/**
+ * @brief add one list member infront of the list head
+ * @param [in] QList *list
+ * @param [in] unsigned int len
+ * @param [in] void *data
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+QList* list_prepend(QList *list, unsigned int len, void *data)
 {
     QList *new_list;
-
+    printf("func %s, len is %d, data is %s\n", __func__, len, data);
     new_list = slice_new(QList);
-    new_list->data = data;
+    new_list->len = len;
+    slice_malloc(new_list->data, new_list->len);
+    slice_dup_s(new_list->data, data, new_list->len);
     new_list->next = list;
 
     if(list)
@@ -102,15 +143,32 @@ list_prepend(QList *list, void *data)
 
     return new_list;
 }
-QList*
-list_append(QList *list, void *data)
+/**
+ * @brief add one list member after list tail
+ * @param [in] QList *list
+ * @param [in] unsigned int len
+ * @param [in] void *data
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+QList* list_append(QList *list, unsigned int len, void *data)
 {
     QList *new_list;
     QList *last;
 
     new_list = slice_new(QList);
-    new_list->data = data;
+    new_list->len = len;
     new_list->next = NULL;
+    slice_malloc(new_list->data, new_list->len);
+    slice_dup_s(new_list->data, data, new_list->len);
 
     if(list)
     {
@@ -140,59 +198,111 @@ list_append(QList *list, void *data)
  *    Author       : xyc
  *    Modification : Created function
  */
-FIFO_Queue*
-queue_new(void)
+FIFO_Queue* queue_new(void)
 {
     return slice_new(FIFO_Queue);
 }
-void
-queue_free(FIFO_Queue *queue)
+/**
+ * @brief free a queue structure
+ * @param [in] FIFO_Queue *queue
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+void queue_free(FIFO_Queue *queue)
 {
     q_return_if_fail(queue!= NULL);
-    /*
-    real free need to do here.
-    */
+
+    slice_free(queue);
 }
-void
-queue_init(FIFO_Queue *queue)
+/**
+ * @brief initial a queue
+ * @param [in] FIFO_Queue *queue
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+void queue_init(FIFO_Queue *queue)
 {
     q_return_if_fail(queue != NULL);
 
     queue->head= queue->tail = NULL;
     queue->length= 0;
 }
-void
-queue_push_head(FIFO_Queue *queue, void *data)
+/**
+ * @brief push a data member to a queue's head
+ * @param [in] FIFO_Queue *queue
+ * @param [in] unsigned int len
+ * @param [in] void *data
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+void queue_push_head(FIFO_Queue *queue, unsigned int len, void *data)
 {
     q_return_if_fail(queue != NULL);
 
-    queue->head = list_prepend(queue->head, data);
+    queue->head = list_prepend(queue->head, len, data);
     if(!queue->tail){//head equals tail
         queue->tail = queue->head;
     }
     queue->length++;
 }
-void
-queue_push_tail(FIFO_Queue *queue, void *data)
+void queue_push_tail(FIFO_Queue *queue, void *data)
 {
 
 }
-void *
-queue_pop_head(FIFO_Queue *queue)
+void* queue_pop_head(FIFO_Queue *queue)
 {
 
 }
-void *
-queue_pop_tail(FIFO_Queue *queue)
+/**
+ * @brief pop a member from queue's tail
+ * @param [in] FIFO_Queue *queue
+ * @param [in] unsigned int *len
+ * @param [out] None
+ * @return
+ * @note
+ *  Calls      :
+ *  Called By  :
+ *
+ *  History        :
+ *  1.Date         : 2013/7/19
+ *    Author       : xyc
+ *    Modification : Created function
+ */
+void* queue_pop_tail(FIFO_Queue *queue, unsigned int *len)
 {
     q_return_if_fail(queue!= NULL);
 
     if(queue->tail)
     {
-        QList *node = queue->tail;
-        void *data = node->data;
+        QList *lst_node = queue->tail;
+        void *data= lst_node->data;
+        *len= lst_node->len;
 
-        queue->tail = node->prev;
+        queue->tail = lst_node->prev;
         if(queue->tail){
             queue->tail->next = NULL;
         }
@@ -200,7 +310,7 @@ queue_pop_tail(FIFO_Queue *queue)
             queue->head = NULL;
         }
         queue->length--;
-        list_free(node);
+        list_free(lst_node);
 
         return data;
     }

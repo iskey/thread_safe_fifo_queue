@@ -10,6 +10,7 @@ extern "C"{
 typedef struct _QList QList;
 
 struct _QList{
+    unsigned int len;
     void *data;
     QList *next;
     QList *prev;
@@ -30,12 +31,17 @@ do{ \
         printf("alloc memory error!\n");    \
         }   \
 }while(0);
+#define slice_dup_s(dst, src, size) \
+do{ \
+    if(!strncpy(dst, src, size))    \
+        printf("string copy error!\n"); \
+}while(0);
 #define slice_free(mem)  do{if(mem!= NULL)free(mem);}while(0);
 
 extern FIFO_Queue* queue_new();
 extern void queue_init(FIFO_Queue *queue);
-extern void queue_push_head(FIFO_Queue * queue, void * data);
-extern void* queue_pop_tail(FIFO_Queue *queue);
+extern void queue_push_head(FIFO_Queue * queue, unsigned int len, void *data);
+extern void* queue_pop_tail(FIFO_Queue *queue, unsigned int *len);
 
 #ifdef __cplusplus
 #if __cplusplus
