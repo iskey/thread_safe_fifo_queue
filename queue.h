@@ -1,11 +1,19 @@
 #ifndef __QUEUE__
 #define __QUEUE__
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C"{
 #endif
 #endif //__cplusplus
+
+#define QUEUE_LENGTH 1
+#if QUEUE_LENGTH
+    #define QUEUE_LENGTH_MUX 1
+#endif
+#define QUEUE_MUX 1
 
 typedef struct _QList QList;
 
@@ -21,7 +29,20 @@ typedef struct _FIFO_Queue FIFO_Queue;
 struct _FIFO_Queue{
     QList *head;
     QList *tail;
+#if QUEUE_MUX
+    /** queue mutex to avoid access conflict,
+     this mutex is to avoid read bad member's data when another thread is doing queue_push_head.
+    */
+    pthread_mutex_t head_mux;
+#endif
+#if QUEUE_LENGTH
+    /** queue length indicator */
     unsigned int length;
+#endif
+#if QUEUE_LENGTH_MUX
+    /** mutex to protect variable:length from unwanted conflict  */
+    pthread_mutex_t length_mux;
+#endif
 };
 
 #define slice_malloc(mem, mem_size)  \

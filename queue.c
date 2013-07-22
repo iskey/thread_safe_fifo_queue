@@ -122,7 +122,7 @@ QList* list_last(QList *list)
 QList* list_prepend(QList *list, unsigned int len, void *data)
 {
     QList *new_list;
-    printf("func %s, len is %d, data is %s\n", __func__, len, data);
+//    printf("func %s, len is %d, data is %s\n", __func__, len, data);
     new_list = slice_new(QList);
     new_list->len = len;
     slice_malloc(new_list->data, new_list->len);
@@ -241,7 +241,43 @@ void queue_init(FIFO_Queue *queue)
     q_return_if_fail(queue != NULL);
 
     queue->head= queue->tail = NULL;
+#if QUEUE_LENGTH
     queue->length= 0;
+#endif
+#if QUEUE_LENGTH_MUX
+    pthread_mutex_init(&(queue->length_mux), NULL);
+#endif
+#if QUEUE_MUX
+    pthread_mutex_init(&(queue->head_mux), NULL);
+#endif
+}
+int queue_lock(FIFO_Queue *queue)
+{
+#if QUEUE_MUX
+    pthread_mutex_lock(&(queue->head_mux));
+#endif
+    return 0;
+}
+int queue_unlock(FIFO_Queue *queue)
+{
+#if QUEUE_MUX
+    pthread_mutex_unlock(&(queue->head_mux));
+#endif
+    return 0;
+}
+int queue_len_lock(FIFO_Queue *queue)
+{
+#if QUEUE_LENGTH_MUX
+    pthread_mutex_lock(&(queue->length_mux));
+#endif  //QUEUE_LENGTH_MUX
+    return 0;
+}
+int queue_len_unlock(FIFO_Queue *queue)
+{
+#if QUEUE_LENGTH_MUX
+    pthread_mutex_unlock(&(queue->length_mux));
+#endif  //QUEUE_LENGTH_MUX
+    return 0;
 }
 /**
  * @brief push a data member to a queue's head
@@ -263,11 +299,18 @@ void queue_push_head(FIFO_Queue *queue, unsigned int len, void *data)
 {
     q_return_if_fail(queue != NULL);
 
+    queue_lock(queue);
     queue->head = list_prepend(queue->head, len, data);
     if(!queue->tail){//head equals tail
         queue->tail = queue->head;
     }
+    queue_unlock(queue);
+
+#if QUEUE_LENGTH
+    queue_len_lock(queue);
     queue->length++;
+    queue_len_unlock(queue);
+#endif //QUEUE_LENGTH
 }
 void queue_push_tail(FIFO_Queue *queue, void *data)
 {
@@ -298,6 +341,7 @@ void* queue_pop_tail(FIFO_Queue *queue, unsigned int *len)
 
     if(queue->tail)
     {
+        queue_lock(queue);
         QList *lst_node = queue->tail;
         void *data= lst_node->data;
         *len= lst_node->len;
@@ -309,8 +353,14 @@ void* queue_pop_tail(FIFO_Queue *queue, unsigned int *len)
         else {
             queue->head = NULL;
         }
-        queue->length--;
         list_free(lst_node);
+        queue_unlock(queue);
+
+#if QUEUE_LENGTH
+        queue_len_lock(queue);
+        queue->length--;
+        queue_len_unlock(queue);
+#endif //QUEUE_LENGTH
 
         return data;
     }
