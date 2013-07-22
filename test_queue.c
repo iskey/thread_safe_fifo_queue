@@ -26,7 +26,7 @@ int main()
     queue_push_head(queue, strlen(tmp5), tmp5);
 
     int i;
-    for(i= 0; i<10; i++){
+    for(i= 0; i<14; i++){
         char *data;
         unsigned int len;
         data= queue_pop_tail(queue, &len);

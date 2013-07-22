@@ -184,6 +184,65 @@ QList* list_append(QList *list, unsigned int len, void *data)
     }
 }
 
+int queue_lock(FIFO_Queue *queue)
+{
+#if QUEUE_MUX
+    pthread_mutex_lock(&(queue->head_mux));
+#endif
+    return 0;
+}
+int queue_unlock(FIFO_Queue *queue)
+{
+#if QUEUE_MUX
+    pthread_mutex_unlock(&(queue->head_mux));
+#endif
+    return 0;
+}
+int queue_len_lock(FIFO_Queue *queue)
+{
+#if QUEUE_LENGTH_MUX
+    pthread_mutex_lock(&(queue->length_mux));
+#endif  //QUEUE_LENGTH_MUX
+    return 0;
+}
+int queue_len_unlock(FIFO_Queue *queue)
+{
+#if QUEUE_LENGTH_MUX
+    pthread_mutex_unlock(&(queue->length_mux));
+#endif  //QUEUE_LENGTH_MUX
+    return 0;
+}
+int queue_sem_init(sem_t *sem)
+{
+    int ret;
+    ret= sem_init(sem, 0, 0);
+    if(0!= ret){
+        printf("queue sem init error!\n");
+        return -1;
+    }
+    return 0;
+}
+int queue_sem_add(sem_t *sem)
+{
+    int ret;
+    ret= sem_post(sem);
+    if(0!= ret){
+        printf("queue sem post error!\n");
+        return -1;
+    }
+    return 0;
+}
+int queue_sem_get(sem_t *sem)
+{
+    int ret;
+    ret= sem_wait(sem);
+    if(0!= ret){
+        printf("queue sem wait error!\n");
+        return -1;
+    }
+    return 0;
+}
+
 /**
  * @brief Create a new FIFO_Queue
  * @param [in] void
@@ -250,34 +309,14 @@ void queue_init(FIFO_Queue *queue)
 #if QUEUE_MUX
     pthread_mutex_init(&(queue->head_mux), NULL);
 #endif
-}
-int queue_lock(FIFO_Queue *queue)
-{
-#if QUEUE_MUX
-    pthread_mutex_lock(&(queue->head_mux));
+
+#if QUEUE_SEM
+    queue->q_sem_init= &queue_sem_init;
+    queue->q_sem_add= &queue_sem_add;
+    queue->q_sem_get= &queue_sem_get;
+
+    queue->q_sem_init(&(queue->sem));
 #endif
-    return 0;
-}
-int queue_unlock(FIFO_Queue *queue)
-{
-#if QUEUE_MUX
-    pthread_mutex_unlock(&(queue->head_mux));
-#endif
-    return 0;
-}
-int queue_len_lock(FIFO_Queue *queue)
-{
-#if QUEUE_LENGTH_MUX
-    pthread_mutex_lock(&(queue->length_mux));
-#endif  //QUEUE_LENGTH_MUX
-    return 0;
-}
-int queue_len_unlock(FIFO_Queue *queue)
-{
-#if QUEUE_LENGTH_MUX
-    pthread_mutex_unlock(&(queue->length_mux));
-#endif  //QUEUE_LENGTH_MUX
-    return 0;
 }
 /**
  * @brief push a data member to a queue's head
@@ -305,6 +344,10 @@ void queue_push_head(FIFO_Queue *queue, unsigned int len, void *data)
         queue->tail = queue->head;
     }
     queue_unlock(queue);
+
+#if QUEUE_SEM
+    queue->q_sem_add(&(queue->sem));
+#endif
 
 #if QUEUE_LENGTH
     queue_len_lock(queue);
@@ -338,6 +381,10 @@ void* queue_pop_head(FIFO_Queue *queue)
 void* queue_pop_tail(FIFO_Queue *queue, unsigned int *len)
 {
     q_return_if_fail(queue!= NULL);
+
+#if QUEUE_SEM
+    queue->q_sem_get(&(queue->sem));
+#endif
 
     if(queue->tail)
     {

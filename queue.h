@@ -1,6 +1,7 @@
 #ifndef __QUEUE__
 #define __QUEUE__
 
+#include <semaphore.h>
 #include <pthread.h>
 
 #ifdef __cplusplus
@@ -9,11 +10,12 @@ extern "C"{
 #endif
 #endif //__cplusplus
 
-#define QUEUE_LENGTH 1
+#define QUEUE_LENGTH 0
 #if QUEUE_LENGTH
     #define QUEUE_LENGTH_MUX 1
 #endif
-#define QUEUE_MUX 1
+#define QUEUE_MUX 0
+#define QUEUE_SEM 1
 
 typedef struct _QList QList;
 
@@ -42,6 +44,13 @@ struct _FIFO_Queue{
 #if QUEUE_LENGTH_MUX
     /** mutex to protect variable:length from unwanted conflict  */
     pthread_mutex_t length_mux;
+#endif
+
+#if QUEUE_SEM
+    sem_t sem;
+    int (* q_sem_init)(sem_t *sem);
+    int (* q_sem_add)(sem_t *sem);
+    int (* q_sem_get)(sem_t *sem);
 #endif
 };
 
