@@ -10,7 +10,7 @@ extern "C"{
 #endif
 #endif //__cplusplus
 
-#define QUEUE_LENGTH 0
+#define QUEUE_LENGTH 0 /** not use queue length indicator */
 #if QUEUE_LENGTH
     #define QUEUE_LENGTH_MUX 1
 #endif
