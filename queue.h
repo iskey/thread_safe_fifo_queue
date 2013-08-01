@@ -63,7 +63,7 @@ do{ \
 }while(0);
 #define slice_dup_s(dst, src, size) \
 do{ \
-    if(!strncpy(dst, src, size))    \
+    if(!memcpy(dst, src, size))    \
         printf("string copy error!\n"); \
 }while(0);
 #define slice_free(mem)  do{if(mem!= NULL)free(mem);}while(0);
